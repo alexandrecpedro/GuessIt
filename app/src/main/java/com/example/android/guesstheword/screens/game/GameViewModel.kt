@@ -21,14 +21,33 @@ import android.text.format.DateUtils
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 
+private val CORRECT_BUZZ_PATTERN = longArrayOf(100, 100, 100, 100, 100, 100)
+private val PANIC_BUZZ_PATTERN = longArrayOf(0, 200)
+private val GAME_OVER_BUZZ_PATTERN = longArrayOf(0, 2000)
+private val NO_BUZZ_PATTERN = longArrayOf(0)
+
 class GameViewModel : ViewModel() {
+
+    // These are the three different types of buzzing in the game. Buzz pattern is the number of
+    // milliseconds each interval of buzzing and non-buzzing takes.
+    enum class BuzzType(val pattern: LongArray) {
+        CORRECT(CORRECT_BUZZ_PATTERN),
+        GAME_OVER(GAME_OVER_BUZZ_PATTERN),
+        COUNTDOWN_PANIC(PANIC_BUZZ_PATTERN),
+        NO_BUZZ(NO_BUZZ_PATTERN)
+    }
+
 //    companion object with the timer constants
     companion object {
-        // These represent different important times
+        // These represent different important times in the game, such as game length
+
         // This is when the game is over
         const val DONE = 0L
+        // This is the time when the phone will start buzzing each second
+        private const val COUNTDOWN_PANIC_SECONDS = 10L
         // This is the number of milliseconds in a second
         const val ONE_SECOND = 1000L
         // This is the total time of the game
@@ -42,6 +61,13 @@ class GameViewModel : ViewModel() {
     private val _currentTime = MutableLiveData<Long>()
     val currentTime: LiveData<Long>
             get() = _currentTime
+
+    // Create a new LiveData called currentTimeString
+    // Use Transformation.map to take currentTime to a String output from currentTimeString,
+    // using DateUtils
+    val currentTimeString = Transformations.map(currentTime) { time ->
+        DateUtils.formatElapsedTime(time)
+    }
 
 //    Move over the word, score, and wordList variables to the GameViewModel
 //    Set up word and score as MutableLiveData
@@ -76,6 +102,11 @@ class GameViewModel : ViewModel() {
         // Getter
         get() = _eventGameFinish
 
+    // Event that triggers the phone to buzz using different patterns, determined by BuzzType
+    private val _eventBuzz = MutableLiveData<BuzzType>()
+    val eventBuzz: LiveData<BuzzType>
+        get() = _eventBuzz
+
 //    Make an init block that prints out a log saying “GameViewModel created!”
     init {
 //        Log.i("GameViewModel", "GameViewModel created!")
@@ -91,24 +122,20 @@ class GameViewModel : ViewModel() {
             override fun onTick(millisUntilFinished: Long) {
                 // TODO implement what should happen each tick of the timer
                 _currentTime.value = (millisUntilFinished / ONE_SECOND)
+                if (millisUntilFinished / ONE_SECOND <= COUNTDOWN_PANIC_SECONDS) {
+                    _eventBuzz.value = BuzzType.COUNTDOWN_PANIC
+                }
             }
 
             override fun onFinish() {
                 // TODO implement what should happen when the timer finishes
                 _currentTime.value = DONE
+                _eventBuzz.value = BuzzType.GAME_OVER
                 _eventGameFinish.value = true
             }
         }
 
         timer.start()
-    }
-
-//    Override onCleared and prints out a log saying “GameViewModel destroyed!”
-    override fun onCleared() {
-        super.onCleared()
-        Log.i("GameViewModel", "GameViewModel destroyed!")
-        // Cancel the timer in onCleared
-        timer.cancel()
     }
 
 //    Move methods resetList, nextWord, onSkip, and onCorrect to the GameViewModel
@@ -168,12 +195,25 @@ class GameViewModel : ViewModel() {
 
     fun onCorrect() {
         _score.value = (score.value)?.plus(1)
+        _eventBuzz.value = BuzzType.CORRECT
         nextWord()
     }
 
     /** Methods for completed events **/
     fun onGameFinishComplete() {
         _eventGameFinish.value = false
+    }
+
+    fun onBuzzComplete() {
+        _eventBuzz.value = BuzzType.NO_BUZZ
+    }
+
+    //    Override onCleared and prints out a log saying “GameViewModel destroyed!”
+    override fun onCleared() {
+        super.onCleared()
+//        Log.i("GameViewModel", "GameViewModel destroyed!")
+        // Cancel the timer in onCleared
+        timer.cancel()
     }
 
 }

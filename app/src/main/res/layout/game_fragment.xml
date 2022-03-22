@@ -18,6 +18,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Add a GameViewModel data binding variable to GameFragment layout -->
+    <data>
+        <variable
+            name="gameViewModel"
+            type="com.example.android.guesstheword.screens.game.GameViewModel" />
+    </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/game_layout"
         android:layout_width="match_parent"
@@ -41,12 +48,15 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed" />
 
+        <!-- Use the LiveData from GameViewModel to set the text attribute
+         for the word_text TextView -->
         <TextView
             android:id="@+id/word_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:animateLayoutChanges="true"
             android:fontFamily="sans-serif"
+            android:text="@{@string/quote_format(gameViewModel.word)}"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
             android:textColor="@color/black_text_color"
             android:textSize="34sp"
@@ -59,6 +69,7 @@
             app:layout_constraintVertical_chainStyle="packed"
             tools:text="&quot;Tuna&quot;" />
 
+        <!-- Set the text attribute of timer_text to the value of currentTimeString -->
         <TextView
             android:id="@+id/timer_text"
             android:layout_width="wrap_content"
@@ -70,11 +81,14 @@
             android:textColor="@color/grey_text_color"
             android:textSize="14sp"
             android:textStyle="normal"
+            android:text="@{gameViewModel.currentTimeString}"
             app:layout_constraintBottom_toTopOf="@+id/score_text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:text="0:00" />
 
+        <!-- Use the LiveData from GameViewModel to set the text attribute
+         for the score_text TextView -->
         <TextView
             android:id="@+id/score_text"
             android:layout_width="wrap_content"
@@ -85,17 +99,21 @@
             android:textColor="@color/grey_text_color"
             android:textSize="14sp"
             android:textStyle="normal"
+            android:text="@{@string/score_format(gameViewModel.score)}"
             app:layout_constraintBottom_toTopOf="@+id/guideline"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:text="Score: 2" />
 
+        <!-- In the GameFragment layout, use the view model variable
+        and data binding to handle clicking (add onClick attributes) -->
         <Button
             android:id="@+id/skip_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:text="@string/skip"
+            android:onClick="@{() -> gameViewModel.onSkip()}"
             android:theme="@style/SkipButton"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/correct_button"
@@ -111,12 +129,15 @@
             android:orientation="horizontal"
             app:layout_constraintGuide_end="96dp" />
 
+        <!-- In the GameFragment layout, use the view model variable
+        and data binding to handle clicking (add onClick attributes) -->
         <Button
             android:id="@+id/correct_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:text="@string/got_it"
+            android:onClick="@{() -> gameViewModel.onCorrect()}"
             android:theme="@style/GoButton"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

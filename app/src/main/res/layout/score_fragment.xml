@@ -18,6 +18,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Add a ScoreViewModel data binding variable to ScoreFragment layout -->
+    <data>
+        <variable
+            name="scoreViewModel"
+            type="com.example.android.guesstheword.screens.score.ScoreViewModel" />
+    </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/score_layout"
         android:layout_width="match_parent"
@@ -41,6 +48,8 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed" />
 
+        <!-- Use the LiveData from ScoreViewModel to set the text attribute
+         for the score_text TextView -->
         <TextView
             android:id="@+id/score_text"
             android:layout_width="wrap_content"
@@ -48,6 +57,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"
             android:fontFamily="sans-serif"
+            android:text="@{String.valueOf(scoreViewModel.score)}"
             android:textColor="@color/black_text_color"
             android:textSize="34sp"
             android:textStyle="normal"
@@ -59,12 +69,15 @@
             app:layout_constraintVertical_chainStyle="packed"
             tools:text="40" />
 
+        <!-- In the ScoreFragment layout, use the view model variable
+        and data binding to handle clicking (add onClick attributes) -->
         <Button
             android:id="@+id/play_again_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
             android:text="@string/play_again"
+            android:onClick="@{() -> scoreViewModel.onPlayAgain()}"
             android:theme="@style/GoButton"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
